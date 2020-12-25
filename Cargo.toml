@@ -1,0 +1,12 @@
+[package]
+authors = ["Louis Boulanger <louis.boulanger74@hotmail.fr>"]
+edition = "2018"
+name = "chess"
+version = "0.1.0"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+rand = "*"
+rayon = "*"
+rayon_logs = "*"
