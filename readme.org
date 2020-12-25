@@ -1,0 +1,49 @@
+# Created 2020-12-25 Fri 23:12
+#+TITLE: Available captures for the rook; a performance analysis on a parallelized version of the problem
+#+AUTHOR: Louis Boulanger
+
+* Introduction
+This project aims to implement a solution for the problem of the
+number of available captures for the rook on a chessboard: on a
+chessboard, where pieces are either *a black rook*, *black bishops* or
+*white pawns*, how many pawns can the rook capture? 
+
+#+results: 
+[[file:img/example1.png]]
+
+In this example, the rook can only capture 2 pawns: e8 and a6. The
+pawn on e3 is blocked by the bishop on e4.
+
+* Base algorithm
+The base algorithm is quite simple: given a board and the position of
+the rook, we need to iterate on the squares in the 4 directions: if
+the first piece encountered is a bishop, there is no capture on this
+position; and if it's a pawn, there is a capture. The result is the
+sum of the number of captures.
+
+#+begin_src rust
+/// Computes the number of pawns the rook can capture in the
+/// board's current configuration.
+pub fn get_rook_captures(&self) -> usize {
+    let start = self.get_rook_position();
+
+    Direction::all()
+	.iter()
+	.map(|d| {
+	    match start
+		.line(*d, self.size)
+		.iter()
+		.filter_map(|p| self.get_piece(p))
+		.next()
+	    {
+		None => 0,
+		Some(k) => match k {
+		    PieceKind::Bishop => 0,
+		    PieceKind::Pawn => 1,
+		    PieceKind::Rook => unreachable!(),
+		},
+	    }
+	})
+	.sum()
+}
+#+end_src

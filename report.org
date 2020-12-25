@@ -8,9 +8,10 @@ import chess.svg
 import sys
 from cairosvg import svg2png
 
-def draw_board(name, fen):
+def draw_board(name, fen, attacks="a1"):
     board = chess.Board(fen)
-    svg = chess.svg.board(board=board)
+    squares = board.attacks(chess.parse_square(attacks))
+    svg = chess.svg.board(board=board, squares=squares)
     svg2png(bytestring=svg, output_width="300px", write_to="img/{}.png".format(name))
 #+End_src
 
@@ -21,7 +22,7 @@ chessboard, where pieces are either *a black rook*, *black bishops* or
 *white pawns*, how many pawns can the rook capture? 
 
 #+Begin_src python :session :results output graphics file :file example1.png :output-dir img/ :exports results
-draw_board("example1", "4P3/5P2/2P1r3/6P1/4b3/4P3/8/8 w - - 0 1")
+draw_board("example1", "4P3/5P2/2P1r3/6P1/4b3/4P3/8/8 w - - 0 1", attacks="e6")
 #+End_src
 
 #+RESULTS:
@@ -29,3 +30,12 @@ draw_board("example1", "4P3/5P2/2P1r3/6P1/4b3/4P3/8/8 w - - 0 1")
 
 In this example, the rook can only capture 2 pawns: e8 and a6. The
 pawn on e3 is blocked by the bishop on e4.
+
+* Base algorithm
+The base algorithm is quite simple: given a board and the position of
+the rook, we need to iterate on the squares in the 4 directions: if
+the first piece encountered is a bishop, there is no capture on this
+position; and if it's a pawn, there is a capture. The result is the
+sum of the number of captures.
+
+#+Include: "src/board.rs" src rust :lines "172-196"
