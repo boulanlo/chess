@@ -6,25 +6,26 @@
 import chess
 import chess.svg
 import sys
+from cairosvg import svg2png
 
 def draw_board(name, fen):
     board = chess.Board(fen)
-    boardsvg = chess.svg.board(board=board)
-    with open("img/{}.svg".format(name), "w") as f:
-        f.write(boardsvg)
+    svg = chess.svg.board(board=board)
+    svg2png(bytestring=svg, output_width="300px", write_to="img/{}.png".format(name))
 #+End_src
+
 
 This project aims to implement a solution for the problem of the
 number of available captures for the rook on a chessboard: on a
 chessboard, where pieces are either *a black rook*, *black bishops* or
 *white pawns*, how many pawns can the rook capture? 
 
-#+Begin_src python :session :results graphics file :file img/example1.svg :exports results
+#+Begin_src python :session :results output graphics file :file example1.png :output-dir img/
 draw_board("example1", "4P3/5P2/2P1r3/6P1/4b3/4P3/8/8 w - - 0 1")
 #+End_src
 
 #+RESULTS:
-[[file:img/example1.svg]]
+[[file:img/example1.png]]
 
 In this example, the rook can only capture 2 pawns: e8 and a6. The
 pawn on e3 is blocked by the bishop on e4.
