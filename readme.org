@@ -8,7 +8,6 @@ number of available captures for the rook on a chessboard: on a
 chessboard, where pieces are either *a black rook*, *black bishops* or
 *white pawns*, how many pawns can the rook capture? 
 
-#+results: 
 [[file:img/example1.png]]
 
 In this example, the rook can only capture 2 pawns: e8 and a6. The
