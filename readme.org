@@ -1,7 +1,15 @@
-# Created 2020-12-26 Sat 17:21
+# Created 2020-12-26 Sat 17:39
 #+TITLE: Available captures for the rook; a performance analysis on a parallelized version of the problem
 #+AUTHOR: Louis Boulanger
-[[file:./report.pdf][PDF]] [[report.org][Source]]
+
+* Foreword
+This document has been generated from an =org-mode= file. The source can
+be found here ([[file:./report.org][Source]]), and a PDF version here ([[file:./report.pdf][PDF]]). I aimed to have
+both the GitHub-ready org-mode file and the PDF to be readable, but
+unfortunately, GitHub doesn't support mathematical expressions to be
+rendered natively on the preview; so, in order to view correctly the
+mathematical formulas throughout the analysis, I recommend reading the
+PDF version.
 
 * Introduction
 This project aims to implement a solution for the problem of the
@@ -10,6 +18,7 @@ chessboard, where pieces are either *a black rook*, *black bishops* or
 *white pawns*, how many pawns can the rook capture? 
 
 [[file:img/example1.png]]
+
 In this example, the rook can only capture 2 pawns: e8 and c6. The
 pawn on e3 is blocked by the bishop on e4.
 
@@ -90,3 +99,13 @@ pub fn get_rook_captures_par(&self) -> usize {
 #+end_src
 
 ** Theoretical performance analysis of the parallel version
+Let's analyze the parallel algorithm. We first formally define a board
+as a 2-dimensional space of size $N^2$. There are 4 parallel branches,
+each iterating on successive squares of the board. Deciding on the
+capture is $\mathcal{O}(1)$, so the exploration of a line takes
+$\mathcal{O}(N)$ at most.
+
+We then have a work of $W = \mathcal{O}(4N)$, and a depth of
+$D = \mathcal{O}(N)$. It is obvious here that having more than 4
+processors for the task is going to be detrimental for the
+performances.
