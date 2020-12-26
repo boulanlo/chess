@@ -1,7 +1,14 @@
 #+Title: Available captures for the rook; a performance analysis on a parallelized version of the problem
 #+Author: Louis Boulanger
 
-[[./report.pdf][PDF]] [[report.org][Source]]
+* Foreword
+This document has been generated from an =org-mode= file. The source can
+be found here ([[./report.org][Source]]), and a PDF version here ([[./report.pdf][PDF]]). I aimed to have
+both the GitHub-ready org-mode file and the PDF to be readable, but
+unfortunately, GitHub doesn't support mathematical expressions to be
+rendered natively on the preview; so, in order to view correctly the
+mathematical formulas throughout the analysis, I recommend reading the
+PDF version.
 
 * Introduction
 #+Begin_src python :session :results none :exports none
@@ -29,6 +36,7 @@ draw_board("example1", "4P3/5P2/2P1r3/6P1/4b3/4P3/8/8 w - - 0 1", attacks="e6")
 
 #+RESULTS:
 [[file:img/example1.png]]
+
 In this example, the rook can only capture 2 pawns: e8 and c6. The
 pawn on e3 is blocked by the bishop on e4.
 
@@ -51,4 +59,13 @@ on the directions.
 #+Include: "src/board.rs" src rust :lines "205-230"
 
 ** Theoretical performance analysis of the parallel version
+Let's analyze the parallel algorithm. We first formally define a board
+as a 2-dimensional space of size $N^2$. There are 4 parallel branches,
+each iterating on successive squares of the board. Deciding on the
+capture is $\mathcal{O}(1)$, so the exploration of a line takes
+$\mathcal{O}(N)$ at most.
 
+We then have a work of $W = \mathcal{O}(4N)$, and a depth of
+$D = \mathcal{O}(N)$. It is obvious here that having more than 4
+processors for the task is going to be detrimental for the
+performances.
