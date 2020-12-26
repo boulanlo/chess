@@ -174,24 +174,33 @@ impl Board {
     pub fn get_rook_captures(&self) -> usize {
         let start = self.get_rook_position();
 
-        Direction::all() // Looking at all directions (up, down, left, right)...
+        // Looking at all directions (up, down, left, right):
+        Direction::all()
             .iter()
             .map(|d| {
                 match start
-                    .line(*d, self.size) // ... we look at the line in that direction ...
+                    // we look at the line in that direction
+                    .line(*d, self.size)
                     .iter()
                     .filter_map(|p| self.get_piece(p))
-                    .next() // .. and get the first piece on the line of sight:
+                    // and get the first piece on the line:
+                    .next()
                 {
-                    None => 0, // If there aren't any, then there is no capture
+                    // If there aren't any, then there
+                    // is no capture
+                    None => 0,
                     Some(k) => match k {
-                        PieceKind::Bishop => 0, // If it's a bishop, no capture either
-                        PieceKind::Pawn => 1, // If it's a pawn, we capture it
-                        PieceKind::Rook => 0, // If it's another rook, no capture
+                        // If it's a bishop, no capture either
+                        PieceKind::Bishop => 0,
+                        // If it's a pawn, we capture it
+                        PieceKind::Pawn => 1,
+                        // If it's another rook, no capture
+                        PieceKind::Rook => 0,
                     },
                 }
             })
-            .sum() // ... and we sum the number of captures.
+            // ... and we sum the number of captures.
+            .sum()
     }
 
     /// Computes the number of pawns the rook can capture in the
@@ -200,7 +209,8 @@ impl Board {
         let start = self.get_rook_position();
 
         Direction::all()
-            .into_par_iter() // We use a parallel iterator here
+            // We use a parallel iterator here
+            .into_par_iter()
             .map(|d| {
                 match start
                     .line(d, self.size)

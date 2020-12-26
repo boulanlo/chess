@@ -1,16 +1,15 @@
-# Created 2020-12-26 Sat 16:30
+# Created 2020-12-26 Sat 17:21
 #+TITLE: Available captures for the rook; a performance analysis on a parallelized version of the problem
 #+AUTHOR: Louis Boulanger
+[[file:./report.pdf][PDF]] [[report.org][Source]]
 
 * Introduction
 This project aims to implement a solution for the problem of the
 number of available captures for the rook on a chessboard: on a
 chessboard, where pieces are either *a black rook*, *black bishops* or
-*white pawns*, how many pawns can the rook capture?
- 
+*white pawns*, how many pawns can the rook capture? 
 
 [[file:img/example1.png]]
-
 In this example, the rook can only capture 2 pawns: e8 and c6. The
 pawn on e3 is blocked by the bishop on e4.
 
@@ -27,25 +26,33 @@ sum of the number of captures.
 pub fn get_rook_captures(&self) -> usize {
     let start = self.get_rook_position();
 
-    Direction::all() // Looking at all directions (up, down, left, right)...
+    // Looking at all directions (up, down, left, right):
+    Direction::all()
 	.iter()
 	.map(|d| {
 	    match start
-		.line(*d, self.size) // ... we look at the line in that direction ...
+		// we look at the line in that direction
+		.line(*d, self.size)
 		.iter()
 		.filter_map(|p| self.get_piece(p))
-		.next() // .. and get the first piece on the line of sight:
+		// and get the first piece on the line:
+		.next()
 	    {
-		None => 0, // If there aren't any, then there is no capture
+		// If there aren't any, then there
+		// is no capture
+		None => 0,
 		Some(k) => match k {
-		    PieceKind::Bishop => 0, // If it's a bishop, no capture either
-		    PieceKind::Pawn => 1, // If it's a pawn, we capture it
-		    PieceKind::Rook => 0, // If it's another rook, no capture
+		    // If it's a bishop, no capture either
+		    PieceKind::Bishop => 0,
+		    // If it's a pawn, we capture it
+		    PieceKind::Pawn => 1,
+		    // If it's another rook, no capture
+		    PieceKind::Rook => 0,
 		},
 	    }
 	})
-	.sum() // ... and we sum the number of captures.
-}
+	// ... and we sum the number of captures.
+	.sum()
 #+end_src
 
 * First attempt at parallelization using Rayon
@@ -62,7 +69,8 @@ pub fn get_rook_captures_par(&self) -> usize {
     let start = self.get_rook_position();
 
     Direction::all()
-	.into_par_iter() // We use a parallel iterator here
+	// We use a parallel iterator here
+	.into_par_iter()
 	.map(|d| {
 	    match start
 		.line(d, self.size)
@@ -79,5 +87,6 @@ pub fn get_rook_captures_par(&self) -> usize {
 	    }
 	})
 	.sum()
-}
 #+end_src
+
+** Theoretical performance analysis of the parallel version

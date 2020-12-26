@@ -1,6 +1,8 @@
 #+Title: Available captures for the rook; a performance analysis on a parallelized version of the problem
 #+Author: Louis Boulanger
 
+[[./report.pdf][PDF]] [[report.org][Source]]
+
 * Introduction
 #+Begin_src python :session :results none :exports none
 import chess
@@ -27,7 +29,6 @@ draw_board("example1", "4P3/5P2/2P1r3/6P1/4b3/4P3/8/8 w - - 0 1", attacks="e6")
 
 #+RESULTS:
 [[file:img/example1.png]]
-
 In this example, the rook can only capture 2 pawns: e8 and c6. The
 pawn on e3 is blocked by the bishop on e4.
 
@@ -38,7 +39,7 @@ the first piece encountered is a bishop, there is no capture on this
 position; and if it's a pawn, there is a capture. The result is the
 sum of the number of captures.
 
-#+Include: "src/board.rs" src rust :lines "172-196"
+#+Include: "src/board.rs" src rust :lines "172-204"
 
 * First attempt at parallelization using Rayon
 We can attempt to parallelize the algorithm in a straightforward
@@ -47,4 +48,7 @@ version of the algorithm is quite similar to the sequential one: using
 Rayon's powerful parallel iterators, we can simply iterate in parallel
 on the directions.
 
-#+Include: "src/board.rs" src rust :lines "197-221"
+#+Include: "src/board.rs" src rust :lines "205-230"
+
+** Theoretical performance analysis of the parallel version
+
