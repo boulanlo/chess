@@ -194,11 +194,13 @@ impl Board {
             .sum() // ... and we sum the number of captures.
     }
 
+    /// Computes the number of pawns the rook can capture in the
+    /// board's current configuration, in parallel.
     pub fn get_rook_captures_par(&self) -> usize {
         let start = self.get_rook_position();
 
         Direction::all()
-            .into_par_iter()
+            .into_par_iter() // We use a parallel iterator here
             .map(|d| {
                 match start
                     .line(d, self.size)
@@ -210,7 +212,7 @@ impl Board {
                     Some(k) => match k {
                         PieceKind::Bishop => 0,
                         PieceKind::Pawn => 1,
-                        PieceKind::Rook => unreachable!(),
+                        PieceKind::Rook => 0,
                     },
                 }
             })

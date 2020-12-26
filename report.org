@@ -28,7 +28,7 @@ draw_board("example1", "4P3/5P2/2P1r3/6P1/4b3/4P3/8/8 w - - 0 1", attacks="e6")
 #+RESULTS:
 [[file:img/example1.png]]
 
-In this example, the rook can only capture 2 pawns: e8 and a6. The
+In this example, the rook can only capture 2 pawns: e8 and c6. The
 pawn on e3 is blocked by the bishop on e4.
 
 * Base algorithm
@@ -39,3 +39,12 @@ position; and if it's a pawn, there is a capture. The result is the
 sum of the number of captures.
 
 #+Include: "src/board.rs" src rust :lines "172-196"
+
+* First attempt at parallelization using Rayon
+We can attempt to parallelize the algorithm in a straightforward
+manner, by looking at the 4 different directions in parallel. This
+version of the algorithm is quite similar to the sequential one: using
+Rayon's powerful parallel iterators, we can simply iterate in parallel
+on the directions.
+
+#+Include: "src/board.rs" src rust :lines "197-221"
