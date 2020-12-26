@@ -174,24 +174,24 @@ impl Board {
     pub fn get_rook_captures(&self) -> usize {
         let start = self.get_rook_position();
 
-        Direction::all()
+        Direction::all() // Looking at all directions (up, down, left, right)...
             .iter()
             .map(|d| {
                 match start
-                    .line(*d, self.size)
+                    .line(*d, self.size) // ... we look at the line in that direction ...
                     .iter()
                     .filter_map(|p| self.get_piece(p))
-                    .next()
+                    .next() // .. and get the first piece on the line of sight:
                 {
-                    None => 0,
+                    None => 0, // If there aren't any, then there is no capture
                     Some(k) => match k {
-                        PieceKind::Bishop => 0,
-                        PieceKind::Pawn => 1,
-                        PieceKind::Rook => unreachable!(),
+                        PieceKind::Bishop => 0, // If it's a bishop, no capture either
+                        PieceKind::Pawn => 1, // If it's a pawn, we capture it
+                        PieceKind::Rook => 0, // If it's another rook, no capture
                     },
                 }
             })
-            .sum()
+            .sum() // ... and we sum the number of captures.
     }
 
     pub fn get_rook_captures_par(&self) -> usize {
