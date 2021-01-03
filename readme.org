@@ -18,7 +18,7 @@ chessboard, where pieces are either *a black rook*, *black bishops* or
 *white pawns*, how many pawns can the rook capture? 
 
 #+results: 
-[[file:img/example1.png]]
+[[./img/example1.png]]
 
 In this example, the rook can only capture 2 pawns: e8 and c6. The
 pawn on e3 is blocked by the bishop on e4.
@@ -124,7 +124,7 @@ can capture the same pawn, the capture is only counted once: we want
 the number of pawns that can be captured.
 
 #+results: 
-[[file:img/example2.png]]
+[[./img/example2.png]]
 
 In this example, we have three rooks:
 - *f7* can capture the pawns /e7/, /f5/ and /h7/: *3* captures.
