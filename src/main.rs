@@ -21,11 +21,11 @@ pub fn main() {
 
     pool.compare()
         .runs_number(20)
-        .attach_algorithm_with_setup("seq", || generate(&generator), |g| g.get_rook_captures())
+        .attach_algorithm_with_setup("seq", || generate(&generator), |g| g.get_rooks_captures())
         .attach_algorithm_with_setup(
             "par",
             || generate(&generator),
-            |g| g.get_rook_captures_par(),
+            |g| g.get_rooks_captures_par(),
         )
         .generate_logs("log.html")
         .unwrap();

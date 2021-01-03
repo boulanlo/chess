@@ -1,4 +1,4 @@
-# Created 2020-12-26 Sat 17:39
+# Created 2021-01-03 Sun 14:57
 #+TITLE: Available captures for the rook; a performance analysis on a parallelized version of the problem
 #+AUTHOR: Louis Boulanger
 
@@ -17,6 +17,7 @@ number of available captures for the rook on a chessboard: on a
 chessboard, where pieces are either *a black rook*, *black bishops* or
 *white pawns*, how many pawns can the rook capture? 
 
+#+results: 
 [[file:img/example1.png]]
 
 In this example, the rook can only capture 2 pawns: e8 and c6. The
@@ -62,6 +63,7 @@ pub fn get_rook_captures(&self) -> usize {
 	})
 	// ... and we sum the number of captures.
 	.sum()
+}
 #+end_src
 
 * First attempt at parallelization using Rayon
@@ -73,7 +75,8 @@ on the directions.
 
 #+begin_src rust
 /// Computes the number of pawns the rook can capture in the
-/// board's current configuration, in parallel.
+/// board's current configuration, in parallel. This function
+/// assumes that there is only one rook on the board.
 pub fn get_rook_captures_par(&self) -> usize {
     let start = self.get_rook_position();
 
@@ -96,6 +99,7 @@ pub fn get_rook_captures_par(&self) -> usize {
 	    }
 	})
 	.sum()
+}
 #+end_src
 
 ** Theoretical performance analysis of the parallel version
@@ -109,3 +113,23 @@ We then have a work of $W = \mathcal{O}(4N)$, and a depth of
 $D = \mathcal{O}(N)$. It is obvious here that having more than 4
 processors for the task is going to be detrimental for the
 performances.
+
+* Adding more rooks
+The previous example isn't really scaleable: since we can only
+consider 4 directions at once, the parallel algorithm can only be at
+most 4 times more efficient than the sequential one. Let's consider
+the case where there is more than one rook on the board, and we need
+to count the total number of captures for all rooks. When two rooks
+can capture the same pawn, the capture is only counted once: we want
+the number of pawns that can be captured.
+
+#+results: 
+[[file:img/example2.png]]
+
+In this example, we have three rooks:
+- *f7* can capture the pawns /e7/, /f5/ and /h7/: *3* captures.
+- *b5* can capture the pawn /f5/, but since it has already been counted
+  previously, it is not counted here. *3* captures.
+- *e3* can capture /e7/ (but already counted) and /e1/: *4* captures
+In total, there are 4 pawns that can be captured out of the 5 on the
+board: the pawn on /h3/ is blocked by the nearby bishop.

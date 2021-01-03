@@ -43,7 +43,7 @@ impl Direction {
 /// A position on the chessboard, identified by the row and column numbers.
 /// For the sake of simplicity, we consider the columns as numbers, as opposed
 /// to letters in traditional chess notation.
-#[derive(Debug, PartialEq, Copy, Clone)]
+#[derive(Debug, PartialEq, Copy, Clone, Hash, Eq)]
 pub struct Position {
     row: u32,
     col: u32,

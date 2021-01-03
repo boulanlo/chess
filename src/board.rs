@@ -1,4 +1,5 @@
 use rayon_logs::prelude::*;
+use std::collections::HashSet;
 use std::io::BufRead;
 
 use crate::{Direction, PieceKind, Position};
@@ -34,20 +35,10 @@ impl Board {
     /// Adds a piece on the specified square on the board.
     ///
     /// # Panics
-    /// The function panics if the square is already occupied, or if the piece to be
-    /// added is a rook and one is already present on the board.
+    /// The function panics if the square is already occupied.
     pub fn add_piece(&mut self, piece: PieceKind, position: Position) {
         match self.get_piece(&position) {
-            None => match piece {
-                PieceKind::Rook => {
-                    if self.is_rook_present() {
-                        panic!("Trying to add a rook while it's already present on the board.")
-                    } else {
-                        self.pieces.push((piece, position))
-                    }
-                }
-                _ => self.pieces.push((piece, position)),
-            },
+            None => self.pieces.push((piece, position)),
             Some(_) => panic!("Trying to add a piece on an already occupied square."),
         }
     }
@@ -57,13 +48,12 @@ impl Board {
     ///
     /// # Panics
     /// The function panics if:
-    /// - The square is already occupied
-    /// - The rook is already present on the board
+    /// - The square is already occupied,
     pub fn add_rook(&mut self, position: Position) {
-        match (self.get_piece(&position), self.is_rook_present()) {
-            (None, false) => self.pieces.push((PieceKind::Rook, position)),
-            (None, true) => panic!("Trying to add a rook while it's already present on the board."),
-            (Some(_), _) => panic!("Trying to add a piece on an already occupied square."),
+        if self.get_piece(&position).is_some() {
+            panic!("Trying to add a piece on an already occupied square.");
+        } else {
+            self.pieces.push((PieceKind::Rook, position));
         }
     }
 
@@ -169,6 +159,16 @@ impl Board {
             .expect("No rook present on the board.")
     }
 
+    pub fn get_rooks_positions(&self) -> Vec<Position> {
+        self.pieces
+            .iter()
+            .filter_map(|(k, p)| match k {
+                PieceKind::Rook => Some(*p),
+                _ => None,
+            })
+            .collect()
+    }
+
     /// Computes the number of pawns the rook can capture in the
     /// board's current configuration.
     pub fn get_rook_captures(&self) -> usize {
@@ -203,8 +203,41 @@ impl Board {
             .sum()
     }
 
+    /// Calculates and returns the total number of captures available
+    /// for all the rooks on the board. If two rooks can capture the
+    /// same pawn, the capture is counted only once.
+    pub fn get_rooks_captures(&self) -> usize {
+        let rooks = self.get_rooks_positions();
+
+        rooks
+            .iter()
+            .map(|start| {
+                Direction::all()
+                    .iter()
+                    .filter_map(|d| {
+                        match start
+                            .line(*d, self.size)
+                            .iter()
+                            .filter_map(|p| self.get_piece(p).map(|k| (k, p)))
+                            .next()
+                        {
+                            None => None,
+                            Some((k, p)) => match k {
+                                PieceKind::Bishop => None,
+                                PieceKind::Pawn => Some(*p),
+                                PieceKind::Rook => None,
+                            },
+                        }
+                    })
+                    .collect::<HashSet<_>>()
+            })
+            .fold(HashSet::new(), |a, b| a.union(&b).copied().collect())
+            .len()
+    }
+
     /// Computes the number of pawns the rook can capture in the
-    /// board's current configuration, in parallel.
+    /// board's current configuration, in parallel. This function
+    /// assumes that there is only one rook on the board.
     pub fn get_rook_captures_par(&self) -> usize {
         let start = self.get_rook_position();
 
@@ -227,6 +260,39 @@ impl Board {
                 }
             })
             .sum()
+    }
+
+    /// Calculates and aggregates the number of captures for all the
+    /// rooks on the board. When two rooks can capture the same pawn,
+    /// only one capture is counted. The strategy here is to
+    /// parallelize on the rooks and not on the 4 directions.
+    pub fn get_rooks_captures_par(&self) -> usize {
+        let rooks = self.get_rooks_positions();
+
+        rooks
+            .par_iter()
+            .map(|start| {
+                Direction::all()
+                    .iter()
+                    .filter_map(|d| {
+                        match start
+                            .line(*d, self.size)
+                            .iter()
+                            .filter_map(|p| self.get_piece(p).map(|k| (k, p)))
+                            .next()
+                        {
+                            None => None,
+                            Some((k, p)) => match k {
+                                PieceKind::Bishop => None,
+                                PieceKind::Pawn => Some(*p),
+                                PieceKind::Rook => None,
+                            },
+                        }
+                    })
+                    .collect::<HashSet<_>>()
+            })
+            .reduce(HashSet::new, |a, b| a.union(&b).copied().collect())
+            .len()
     }
 
     /// Prints the board on the console

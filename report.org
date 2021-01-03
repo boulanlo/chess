@@ -47,7 +47,7 @@ the first piece encountered is a bishop, there is no capture on this
 position; and if it's a pawn, there is a capture. The result is the
 sum of the number of captures.
 
-#+Include: "src/board.rs" src rust :lines "172-204"
+#+Include: "src/board.rs" src rust :lines "172-205"
 
 * First attempt at parallelization using Rayon
 We can attempt to parallelize the algorithm in a straightforward
@@ -56,7 +56,7 @@ version of the algorithm is quite similar to the sequential one: using
 Rayon's powerful parallel iterators, we can simply iterate in parallel
 on the directions.
 
-#+Include: "src/board.rs" src rust :lines "205-230"
+#+Include: "src/board.rs" src rust :lines "238-264"
 
 ** Theoretical performance analysis of the parallel version
 Let's analyze the parallel algorithm. We first formally define a board
@@ -69,3 +69,27 @@ We then have a work of $W = \mathcal{O}(4N)$, and a depth of
 $D = \mathcal{O}(N)$. It is obvious here that having more than 4
 processors for the task is going to be detrimental for the
 performances.
+
+* Adding more rooks
+The previous example isn't really scaleable: since we can only
+consider 4 directions at once, the parallel algorithm can only be at
+most 4 times more efficient than the sequential one. Let's consider
+the case where there is more than one rook on the board, and we need
+to count the total number of captures for all rooks. When two rooks
+can capture the same pawn, the capture is only counted once: we want
+the number of pawns that can be captured.
+
+#+Begin_src python :session :results output graphics file :file example2.png :output-dir img/ :exports results
+draw_board("example2", "1b6/4Pr1P/8/1r3P2/8/4r1bP/2b5/4P2b w - - 0 1")
+#+End_src
+
+#+RESULTS:
+[[file:img/example2.png]]
+
+In this example, we have three rooks:
+- *f7* can capture the pawns /e7/, /f5/ and /h7/: *3* captures.
+- *b5* can capture the pawn /f5/, but since it has already been counted
+  previously, it is not counted here. *3* captures.
+- *e3* can capture /e7/ (but already counted) and /e1/: *4* captures
+In total, there are 4 pawns that can be captured out of the 5 on the
+board: the pawn on /h3/ is blocked by the nearby bishop.
