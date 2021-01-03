@@ -93,3 +93,32 @@ In this example, we have three rooks:
 - *e3* can capture /e7/ (but already counted) and /e1/: *4* captures
 In total, there are 4 pawns that can be captured out of the 5 on the
 board: the pawn on /h3/ is blocked by the nearby bishop.
+
+** Sequential algorithm
+We already designed the algorithm for the case with only one rook
+previously: since the problem only changes the number of rooks on the
+board, we can re-use the previous algorithm, and apply it to each rook
+on the board. Let's look at the sequential version first.
+
+#+Include: "src/board.rs" src rust :lines "206-237"
+
+The code is the same as the previous one, only that we apply it to all
+rooks on the board. In order to take duplicate captures into
+consideration, we collect the capture's position and not its presence;
+then, we aggregate these positions into a `HashSet`. This way,
+duplicates are eliminated (using the union operator on sets). If we
+consider R rooks, we now have a complexity of $\mathcal{O}(4RN)$.
+
+** Parallel algorithm
+Now that we have a sequential algorithm for our new problem, it's easy
+to convert it into a parallel one using Rayon.
+
+#+Include: "src/board.rs" src rust :lines "265-297"
+
+The code is identical to the sequential version, only that we
+parallelize on the different rooks' positions. The 4 different
+directions aren't considered in parallel anymore. With R rooks, we
+have a work of $W = \mathcal{O}(4RN)$, and a depth of $D =
+\mathcal{O}(4N)$. We can see now that it's much more scalable: with
+the execution time being $max(\frac{W}{d}, D)$, the algorithm allows up to $p
+= R$ processors to work in parallel.

@@ -209,7 +209,7 @@ impl Board {
     pub fn get_rooks_captures(&self) -> usize {
         let rooks = self.get_rooks_positions();
 
-        rooks
+        rooks // For all rooks
             .iter()
             .map(|start| {
                 Direction::all()
