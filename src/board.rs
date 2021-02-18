@@ -1,4 +1,4 @@
-use rayon_logs::prelude::*;
+use rayon::prelude::*;
 use std::collections::HashSet;
 use std::io::BufRead;
 

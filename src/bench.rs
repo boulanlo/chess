@@ -1,4 +1,7 @@
 use crate::{Board, PieceKind, Position};
+use rayon::ThreadPoolBuilder;
+
+use std::time::Instant;
 
 pub trait Generator {
     type Output;
@@ -71,5 +74,117 @@ impl Generator for BoardGenerator {
                 .collect(),
         );
         board
+    }
+}
+
+pub struct Benchmark<U: Sync + Send> {
+    sizes: Option<Vec<usize>>,
+    threads: Option<Vec<usize>>,
+    runs: usize,
+    functions: Vec<(String, Box<dyn FnMut(&U) -> () + Sync + Send>)>,
+}
+
+impl<U: Sync + Send> Benchmark<U> {
+    pub fn new() -> Self {
+        Benchmark {
+            sizes: None,
+            threads: None,
+            runs: 20,
+            functions: Vec::new(),
+        }
+    }
+
+    pub fn sizes(mut self, sizes: Vec<usize>) -> Self {
+        self.sizes = Some(sizes);
+        self
+    }
+
+    pub fn threads(mut self, threads: Vec<usize>) -> Self {
+        self.threads = Some(threads);
+        self
+    }
+
+    pub fn runs(mut self, runs: usize) -> Self {
+        self.runs = runs;
+        self
+    }
+
+    pub fn add_function(
+        mut self,
+        function: Box<dyn FnMut(&U) -> () + Sync + Send>,
+        name: String,
+    ) -> Self {
+        self.functions.push((name, function));
+        self
+    }
+
+    pub fn bench<G>(self, mut gen: G) -> BenchmarkResult
+    where
+        G: FnMut(usize) -> U,
+    {
+        let threads = self.threads.unwrap();
+        let sizes = self.sizes.unwrap();
+        let mut functions = self.functions;
+        let runs = self.runs;
+
+        let names = functions.iter().map(|(n, _)| n.clone()).collect();
+
+        let data = threads
+            .iter()
+            .map(|&t| {
+                let threads = ThreadPoolBuilder::new().num_threads(t).build().unwrap();
+                println!("With {} threads...", t);
+
+                sizes
+                    .iter()
+                    .map(|s| {
+                        let u = gen(*s);
+
+                        println!("  With size {}...", *s);
+
+                        (0..runs)
+                            .map(|r| {
+                                functions
+                                    .iter_mut()
+                                    .map(|(n, f)| {
+                                        println!("    Run {}: {}", r, n);
+                                        threads.install(|| {
+                                            let start = Instant::now();
+                                            f(&u);
+                                            start.elapsed().as_nanos() as u64
+                                        })
+                                    })
+                                    .collect::<Vec<_>>()
+                            })
+                            .collect::<Vec<_>>()
+                    })
+                    .collect::<Vec<_>>()
+            })
+            .collect::<Vec<_>>();
+
+        BenchmarkResult::new(data, names, threads.clone(), sizes.clone())
+    }
+}
+
+pub struct BenchmarkResult {
+    data: Vec<Vec<Vec<Vec<u64>>>>,
+    functions: Vec<String>,
+    threads: Vec<usize>,
+    sizes: Vec<usize>,
+}
+
+impl BenchmarkResult {
+    pub fn new(
+        data: Vec<Vec<Vec<Vec<u64>>>>,
+        functions: Vec<String>,
+        threads: Vec<usize>,
+        sizes: Vec<usize>,
+    ) -> Self {
+        BenchmarkResult {
+            data,
+            functions,
+            threads,
+            sizes,
+        }
     }
 }

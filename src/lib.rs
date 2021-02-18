@@ -10,4 +10,4 @@ mod board;
 pub use board::Board;
 
 mod bench;
-pub use bench::{BoardGenerator, Generator};
+pub use bench::{Benchmark, BoardGenerator, Generator};

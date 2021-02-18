@@ -10,3 +10,9 @@ version = "0.1.0"
 rand = "*"
 rayon = "*"
 rayon_logs = "*"
+criterion = "*"
+
+
+[[bench]]
+name = "rook"
+harness = false

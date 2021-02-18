@@ -1,7 +1,7 @@
 extern crate rayon_logs as rayon;
 
 use chess::Generator;
-use chess::{Board, BoardGenerator};
+use chess::{Benchmark, Board, BoardGenerator};
 
 fn generate(generator: &BoardGenerator) -> Board {
     println!("Generating...");
@@ -11,6 +11,7 @@ fn generate(generator: &BoardGenerator) -> Board {
 }
 
 pub fn main() {
+    /*
     let board_size = std::env::args().nth(1).map(|s| s.parse().unwrap()).unwrap();
     let generator = BoardGenerator::new(board_size);
 
@@ -29,4 +30,23 @@ pub fn main() {
         )
         .generate_logs("log.html")
         .unwrap();
+     */
+
+    let results = Benchmark::new()
+        .threads(vec![1, 2, 3, 4])
+        .sizes(vec![256, 512])
+        .runs(2)
+        .add_function(
+            Box::new(|b: &Board| {
+                b.get_rook_captures_par();
+            }),
+            "single_rook".to_string(),
+        )
+        .add_function(
+            Box::new(|b: &Board| {
+                b.get_rooks_captures_par();
+            }),
+            "multiple_rooks".to_string(),
+        )
+        .bench(|s: usize| BoardGenerator::new(s as u32).generate());
 }
